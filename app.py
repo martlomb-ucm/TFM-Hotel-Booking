@@ -82,7 +82,7 @@ st.divider()
 # PREDICCIÓN
 # ============================================
 
-if st.button("🔮 Predecir", use_container_width=True, type="primary"):
+if st.button("Predecir", use_container_width=True, type="primary"):
 
     # Mapeo español → inglés
     deposit_map = {"Sin depósito": "No Deposit",
@@ -173,7 +173,7 @@ if st.button("🔮 Predecir", use_container_width=True, type="primary"):
         2: "Cancelador Seguro",
         3: "Vacacionista Planificado",
     }
-    st.caption(f"Segmento de cliente asignado: **{nombres_cluster.get(cluster, cluster)}** (cluster {cluster})")
+    st.caption(f"Segmento de cliente asignado: **{nombres_cluster.get(cluster, cluster)}**)
 
     # Recomendación
     st.markdown("### 💡 Recomendación")

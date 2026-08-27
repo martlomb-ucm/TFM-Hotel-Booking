@@ -114,17 +114,25 @@ if st.button("🔮 Predecir", use_container_width=True, type="primary"):
     channel_enc = encoders['distribution_channel'].transform([channel_map[distribution_channel]])[0]
     customer_enc = encoders['customer_type'].transform([customer_map[customer_type]])[0]
 
-    meal_enc = {"FB": 0, "BB": 1, "HB": 2, "SC": 3}[meal_map[meal]]
+    # NOTA: 'meal' y 'market_segment' no tienen encoder guardado en encoders.pkl,
+    # por lo que se codifican manualmente replicando el orden alfabético que usa
+    # LabelEncoder por defecto (confirmado con los 4 encoders reales del pickle).
+    # Antes de la entrega final, verificar con sorted(df['meal'].unique()) en el
+    # notebook que este mapeo coincide exactamente con el usado en el entrenamiento.
+    meal_enc = {"BB": 0, "FB": 1, "HB": 2, "SC": 3}[meal_map[meal]]
     segment_enc = {"Aviation": 0, "Complementary": 1, "Corporate": 2,
                    "Direct": 3, "Groups": 4, "Offline TA/TO": 5, "Online TA": 6}[segment_map[market_segment]]
 
     # Clustering
+    # IMPORTANTE: el orden de estas columnas debe coincidir EXACTAMENTE con
+    # scaler.feature_names_in_ (verificado contra el scaler.pkl real):
+    # [..., hotel, distribution_channel, customer_type, deposit_type]
     cluster_input = np.array([[
         lead_time, total_nights, adr,
         int(is_repeated_guest), previous_cancellations,
         previous_bookings_not_canceled, booking_changes,
         total_special_requests, int(required_car_parking),
-        hotel_enc, channel_enc, deposit_enc, customer_enc
+        hotel_enc, channel_enc, customer_enc, deposit_enc
     ]])
     cluster_scaled = scaler.transform(cluster_input)
     cluster = kmeans.predict(cluster_scaled)[0]
@@ -157,6 +165,15 @@ if st.button("🔮 Predecir", use_container_width=True, type="primary"):
         st.warning(f"## 🟡 {prob_cancelacion:.1f}% de probabilidad de cancelación")
     else:
         st.success(f"## 🟢 {prob_cancelacion:.1f}% de probabilidad de cancelación")
+
+    # Segmento de cliente (conecta la predicción con la fase de clustering del TFM)
+    nombres_cluster = {
+        0: "Cliente Fiel",
+        1: "Turista Estándar",
+        2: "Cancelador Seguro",
+        3: "Vacacionista Planificado",
+    }
+    st.caption(f"Segmento de cliente asignado: **{nombres_cluster.get(cluster, cluster)}** (cluster {cluster})")
 
     # Recomendación
     st.markdown("### 💡 Recomendación")
